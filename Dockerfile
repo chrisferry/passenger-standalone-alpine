@@ -1,6 +1,6 @@
 FROM alpine:3.4
 
-ENV PASSENGER_VERSION="5.0.28" \
+ENV PASSENGER_VERSION="5.0.30" \
     PATH="/opt/passenger/bin:$PATH"
 
 RUN apk add --no-cache ruby
@@ -32,7 +32,7 @@ RUN apk add --no-cache --virtual build-deps binutils build-base ruby-dev linux-h
     mkdir -p /usr/src/app
 
 # Node.JS Section
-ENV NODE_VERSION=v4.5.0 NPM_VERSION=2
+ENV NODE_VERSION=v6.4.0 NPM_VERSION=2
 RUN apk add libgcc libstdc++ && \
     apk add --virtual node-deps --no-cache curl make gcc g++ python linux-headers paxctl gnupg && \
     gpg --keyserver ha.pool.sks-keyservers.net --recv-keys \
@@ -69,4 +69,4 @@ RUN chmod +x /bin/reaper
 WORKDIR /usr/src/app
 EXPOSE 3000
 
-ENTRYPOINT ["reaper", "--", "passenger", "start", "--no-install-runtime", "--no-compile-runtime"]
+ENTRYPOINT ["reaper", "--", "passenger", "start", "--no-install-runtime", "--no-compile-runtime", "--log-file=/dev/stdout"]
