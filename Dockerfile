@@ -15,7 +15,7 @@ RUN apk add --no-cache --virtual build-deps binutils build-base ruby-dev linux-h
 # Compile agent
     passenger-config compile-agent --auto --optimize && \
     passenger-config install-standalone-runtime --auto --url-root=fake --connect-timeout=1 && \
-    # passenger-config build-native-support && \
+    passenger-config build-native-support && \
 # Cleanup passenger src directory
     rm -rf /tmp/* && \
     mv /opt/passenger/src/ruby_supportlib /tmp && \
@@ -63,7 +63,10 @@ RUN apk add libgcc libstdc++ && \
     rm -rf /etc/ssl /node-${NODE_VERSION}.tar.gz /SHASUMS256.txt.asc /node-${NODE_VERSION} \
       /usr/share/man /tmp/* /var/cache/apk/* /root/.gnupg
 
+ADD reaper.rb /bin/reaper
+RUN chmod +x /bin/reaper
+
 WORKDIR /usr/src/app
 EXPOSE 3000
 
-ENTRYPOINT ["passenger", "start", "--no-install-runtime", "--no-compile-runtime"]
+ENTRYPOINT ["reaper", "--", "passenger", "start", "--no-install-runtime", "--no-compile-runtime"]
