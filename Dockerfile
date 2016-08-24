@@ -3,15 +3,20 @@ FROM alpine:3.4
 ENV PASSENGER_VERSION="5.0.30" \
     PATH="/opt/passenger/bin:$PATH"
 
+# Run when Alpine cdn is down
+RUN sed -i -e 's/dl-cdn/dl-4/g' /etc/apk/repositories
+
 RUN apk add --no-cache ruby
 RUN apk add --no-cache --virtual build-deps binutils build-base ruby-dev linux-headers curl-dev pcre-dev ruby-rake && \
     apk add --no-cache -X http://dl-3.alpinelinux.org/alpine/edge/main libexecinfo libexecinfo-dev && \
     apk add --no-cache ca-certificates curl procps pcre libstdc++ && \
 # Download and extract
     mkdir -p /opt && \
-    curl -L https://s3.amazonaws.com/phusion-passenger/releases/passenger-$PASSENGER_VERSION.tar.gz | tar -xzf - -C /opt && \
+    curl -sSL https://s3.amazonaws.com/phusion-passenger/releases/passenger-$PASSENGER_VERSION.tar.gz | tar -xzf - -C /opt && \
     mv /opt/passenger-$PASSENGER_VERSION /opt/passenger && \
     export EXTRA_PRE_CFLAGS='-O' EXTRA_PRE_CXXFLAGS='-O' EXTRA_LDFLAGS='-lexecinfo' && \
+# Install gosu
+    curl -o /usr/local/bin/gosu -sSL "https://github.com/tianon/gosu/releases/download/1.4/gosu-amd64" && chmod +x /usr/local/bin/gosu && \
 # Compile agent
     passenger-config compile-agent --auto --optimize && \
     passenger-config install-standalone-runtime --auto --url-root=fake --connect-timeout=1 && \
@@ -60,13 +65,15 @@ RUN apk add libgcc libstdc++ && \
     paxctl -cm /usr/bin/node && \
     cd / && \
     apk del node-deps && \
-    rm -rf /etc/ssl /node-${NODE_VERSION}.tar.gz /SHASUMS256.txt.asc /node-${NODE_VERSION} \
+    rm -rf /node-${NODE_VERSION}.tar.gz /SHASUMS256.txt.asc /node-${NODE_VERSION} \
       /usr/share/man /tmp/* /var/cache/apk/* /root/.gnupg
 
 ADD reaper.rb /bin/reaper
 RUN chmod +x /bin/reaper
 
 WORKDIR /usr/src/app
+RUN addgroup -g 7999 app && adduser -u 7999 -D -G app app
+
 EXPOSE 3000
 
-ENTRYPOINT ["reaper", "--", "passenger", "start", "--no-install-runtime", "--no-compile-runtime", "--log-file=/dev/stdout"]
+ENTRYPOINT ["gosu app reaper", "--", "passenger", "start", "--no-install-runtime", "--no-compile-runtime", "--log-file=/dev/stdout"]
