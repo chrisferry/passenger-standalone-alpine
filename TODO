@@ -1,0 +1,16 @@
+### Goals:
+
+  - Have a Passenger Standalone production image for Ruby, Node.JS and Python projects
+  - The production image must have a minimal footprint
+  - Have a build environment image for these images so their native dependencies can easily be built
+  - Support multiple versions of each platform to support most users
+  - Have tests of the image for some large projects (i.e. discourse, etc)
+  - Have documentation on common operations
+
+### Steps:
+
+  - implement building of ruby build and production containers for 2.3 and 1.9
+  - test and fix containers for some projects (discourse, rails-5-actioncable?)
+  - implement building of node.js build and production containers
+  - test and fix containers for node.js
+  - 
