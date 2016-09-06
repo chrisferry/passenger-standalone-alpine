@@ -10,6 +10,9 @@
 ### Steps:
 
   - implement building of ruby build and production containers for 2.3 and 1.9
+    - proof of concept
+    - system for building multiple versions
+    - 
   - test and fix containers for some projects (discourse, rails-5-actioncable?)
   - implement building of node.js build and production containers
   - test and fix containers for node.js

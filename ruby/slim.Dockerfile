@@ -4,7 +4,7 @@ ENV PASSENGER_VERSION="5.0.30" \
     PATH="/opt/passenger/bin:$PATH"
 
 # Run when Alpine cdn is down
-RUN sed -i -e 's/dl-cdn/dl-4/g' /etc/apk/repositories
+# RUN sed -i -e 's/dl-cdn/dl-4/g' /etc/apk/repositories
 
 RUN apk add --no-cache ruby
 RUN apk add --no-cache --virtual build-deps binutils build-base ruby-dev linux-headers curl-dev pcre-dev ruby-rake && \
