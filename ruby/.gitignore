@@ -1,2 +1,4 @@
 build-cache
 keys
+context/*
+!context/shared
