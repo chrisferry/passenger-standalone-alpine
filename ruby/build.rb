@@ -1,4 +1,5 @@
 ROOT_DIR = File.expand_path(File.dirname(__FILE__))
+IMAGE_NAME = "phusion/ruby-alpine"
 
 def main
 	versions = {
@@ -16,6 +17,8 @@ def main
 
 	puts "Generated keys."
 
+	names = []
+
 	all_versions.each do |version|
 		# Build packages
 		threads << Thread.new do
@@ -23,14 +26,17 @@ def main
 			build_packages(version)
 			puts "--------------------"
 			puts "Going to build container for #{version}"
-			build_container(version)
+			names << build_container(version)
 			puts "--------------------"
-			# Tag container
 		end
 	end
 
 	threads.each(&:join)
 	puts "\nDone.."
+
+	system 'reset'
+	
+	names.each {|n| puts "Built image: #{n}"}
 end
 
 def generate_keys
@@ -56,14 +62,16 @@ def generate_keys
 end
 
 def build_container(version)
+	name = "#{IMAGE_NAME}:#{version}-slim"
 	context = "#{ROOT_DIR}/context/#{version}"
-	repository = "#{ROOT_DIR}/build-cache/packages/#{version}"
+	repository = "#{ROOT_DIR}/build-cache/packages/#{version}/*"
 
 	system "mkdir -p #{context}"
-	system "cp -r #{repository} #{context}/packages"
+	system "cp -r #{repository} #{context}/packages/"
 	system "cp #{ROOT_DIR}/context/shared/* #{context}/"
-	
-	system "docker build --build-arg RUBY_VERSION=#{version} #{context}"
+
+	system "docker build -t #{name} --build-arg RUBY_VERSION=#{version} #{context}"
+	name
 end
 
 def build_packages(version)
@@ -71,6 +79,9 @@ def build_packages(version)
 	repository = "#{ROOT_DIR}/build-cache/packages/#{version}"
 
 	system %Q{ mkdir -p -m 777 #{repository}}
+	
+	# We need to have a git repository with a tag in the package directory for some reason.
+	system %Q{ cd #{package}; git init; git add .; git commit -a -m "init"; git tag -m "init" init }
 
 	keys = "#{ROOT_DIR}/keys"
 	
@@ -84,6 +95,9 @@ def build_packages(version)
 	    phusion/abuild \
 	}
 	# raise "Build package #{version} failed:\n#{output}" unless $?.success?
+
+	# Clean up the git repository we made for abuilder
+	system %Q{ rm -rf #{package}/.git }
 end
 
 main

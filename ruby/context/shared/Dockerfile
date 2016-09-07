@@ -9,8 +9,8 @@ ENV PASSENGER_VERSION="5.0.30" \
 COPY packages /packages
 ARG RUBY_VERSION=ruby_version_missing
 RUN apk add --allow-untrusted --no-cache \
-	/packages/builder/x86_64/ruby-libs-$RUBY_VERSION*.apk \
-	/packages/builder/x86_64/ruby-$RUBY_VERSION*.apk
+	/packages/x86_64/ruby-libs-$RUBY_VERSION*.apk \
+	/packages/x86_64/ruby-$RUBY_VERSION*.apk
 
 # RUN apk add --no-cache ruby
 # RUN apk add --no-cache --virtual build-deps binutils build-base ruby-dev linux-headers curl-dev pcre-dev ruby-rake && \
