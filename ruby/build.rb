@@ -1,5 +1,6 @@
 ROOT_DIR = File.expand_path(File.dirname(__FILE__))
 IMAGE_NAME = "phusion/ruby-alpine"
+BASE_IMAGE = "alpine:3.4"
 
 def main
 	versions = {
@@ -63,14 +64,26 @@ end
 
 def build_container(version)
 	name = "#{IMAGE_NAME}:#{version}-slim"
-	context = "#{ROOT_DIR}/context/#{version}"
-	repository = "#{ROOT_DIR}/build-cache/packages/#{version}/*"
+	repository = "#{ROOT_DIR}/build-cache/packages/#{version}/builder"
 
-	system "mkdir -p #{context}"
-	system "cp -r #{repository} #{context}/packages/"
-	system "cp #{ROOT_DIR}/context/shared/* #{context}/"
+	command = %Q{ apk add --allow-untrusted --no-cache \
+		/packages/x86_64/ruby-libs-#{version}-r0.apk \
+		/packages/x86_64/ruby-#{version}-r0.apk }
 
-	system "docker build -t #{name} --build-arg RUBY_VERSION=#{version} #{context}"
+	cid_file = "/tmp/ruby-#{version}.cid"
+	system "rm #{cid_file}"
+	system %Q{
+	  docker run \
+		--cidfile #{cid_file} \
+		-it \
+		-v #{repository}:/packages \
+		 #{BASE_IMAGE} \
+		sh -c "#{command}"
+	}
+	message = "Install Ruby #{version}"
+	cid = `cat #{cid_file}`.chomp
+	puts "Cid is <#{cid}>.."
+	system %Q{ docker commit -m "#{message}" #{cid} #{name} }
 	name
 end
 

@@ -3,3 +3,4 @@ keys/*
 !keys/.gitkeep
 context/*
 !context/shared
+.swp
